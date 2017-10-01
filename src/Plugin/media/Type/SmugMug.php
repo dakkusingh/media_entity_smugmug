@@ -112,7 +112,6 @@ class SmugMug extends MediaSourceBase implements MediaSourceFieldConstraintsInte
    */
   public static function parseSmugMugEmbedField($data) {
     $data = trim($data);
-
     // Ideally we would verify that the content URL matches an exact pattern,
     // but SmugMug has a ton of different ways posts/notes/videos/etc URLs can
     // be formatted, so it's not practical to try and validate them. Instead,
@@ -122,20 +121,18 @@ class SmugMug extends MediaSourceBase implements MediaSourceFieldConstraintsInte
     if (preg_match($content_url_regex, $data)) {
       return $data;
     }
-    else {
-      // Check if the user entered an iframe embed instead, and if so,
-      // extract the post URL from the iframe src.
-      $doc = new \DOMDocument();
+    // Check if the user entered an iframe embed instead, and if so,
+    // extract the post URL from the iframe src.
+    $doc = new \DOMDocument();
 
-      if (@$doc->loadHTML($data)) {
-        $iframes = $doc->getElementsByTagName('iframe');
+    if (@$doc->loadHTML($data)) {
+      $iframes = $doc->getElementsByTagName('iframe');
 
-        if ($iframes->length > 0 && $iframes->item(0)->hasAttribute('src')) {
-          $iframe_src = $iframes->item(0)->getAttribute('src');
+      if ($iframes->length > 0 && $iframes->item(0)->hasAttribute('src')) {
+        $iframe_src = $iframes->item(0)->getAttribute('src');
 
-          if (preg_match($content_url_regex, $iframe_src)) {
-            return $iframe_src;
-          }
+        if (preg_match($content_url_regex, $iframe_src)) {
+          return $iframe_src;
         }
       }
     }
