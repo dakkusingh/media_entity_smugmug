@@ -2,8 +2,8 @@
 
 namespace Drupal\media_entity_smugmug\Plugin\Validation\Constraint;
 
-use Drupal\media_entity\EmbedCodeValueTrait;
-use Drupal\media_entity_smugmug\Plugin\MediaEntity\Type\SmugMug;
+use Drupal\Core\Field\FieldItemInterface;
+use Drupal\media_entity_smugmug\Plugin\media\Source\SmugMug;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
@@ -12,15 +12,24 @@ use Symfony\Component\Validator\ConstraintValidator;
  */
 class SmugMugEmbedCodeConstraintValidator extends ConstraintValidator {
 
-  use EmbedCodeValueTrait;
-
   /**
    * {@inheritdoc}
    */
   public function validate($value, Constraint $constraint) {
-    $value = $this->getEmbedCode($value);
+    if (is_string($value)) {
+      $data = $value;
+    }
 
-    if (!isset($value)) {
+    if ($value instanceof FieldItemInterface) {
+      $class = get_class($value);
+      $property = $class::mainPropertyName();
+
+      if ($property) {
+        $data = $value->$property;
+      }
+    }
+
+    if (empty($data)) {
       return;
     }
 

@@ -1,24 +1,29 @@
 <?php
 
-namespace Drupal\media_entity_smugmug\Plugin\MediaEntity\Type;
+namespace Drupal\media_entity_smugmug\Plugin\media\Source;
 
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\media_entity\MediaInterface;
-use Drupal\media_entity\MediaTypeBase;
+use Drupal\media\MediaInterface;
+use Drupal\media\MediaSourceBase;
+use Drupal\media\MediaSourceFieldConstraintsInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Field\FieldTypePluginManagerInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\media\MediaTypeInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides media type plugin for SmugMug.
+ * SmugMug entity media source.
  *
- * @MediaType(
+ * @MediaSource(
  *   id = "smugmug",
  *   label = @Translation("SmugMug"),
- *   description = @Translation("Provides business logic and metadata for SmugMug.")
+ *   description = @Translation("Provides business logic and metadata for SmugMug."),
+ *   allowed_field_types = {"string_long"},
+ *   default_thumbnail_filename = "smugmug.png"
  * )
- *
- * @todo On the long run we could switch to the smugmug API which provides WAY
- *   more fields.
  */
-class SmugMug extends MediaTypeBase {
+class SmugMug extends MediaSourceBase implements MediaSourceFieldConstraintsInterface {
 
   const IFRAME_TEMPLATE = '<iframe class="smugmug-gallery" id="smugmug-gallery-@id" src="@url" width="@width" frameborder="no" scrolling="no"></iframe>';
 
@@ -39,48 +44,13 @@ class SmugMug extends MediaTypeBase {
   /**
    * {@inheritdoc}
    */
-  public function defaultConfiguration() {
-    return [
-      'source_field' => '',
-    ];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    $form = [];
-    $options = [];
-    $bundle = $form_state->getFormObject()->getEntity();
-    $allowed_field_types = ['string', 'string_long', 'link'];
-
-    foreach ($this->entityFieldManager->getFieldDefinitions('media', $bundle->id()) as $field_name => $field) {
-      if (in_array($field->getType(), $allowed_field_types) && !$field->getFieldStorageDefinition()->isBaseField()) {
-        $options[$field_name] = $field->getLabel();
-      }
-    }
-
-    $form['source_field'] = [
-      '#type' => 'select',
-      '#title' => t('Field with gallery source information'),
-      '#description' => t('Field on media entity that stores the smugmug gallery embed code or URL. You can create a bundle without selecting a value for this dropdown initially. This dropdown can be populated after adding fields to the bundle.'),
-      '#default_value' => empty($this->configuration['source_field']) ? NULL : $this->configuration['source_field'],
-      '#options' => $options,
-    ];
-
-    return $form;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function providedFields() {
+  public function getMetadataAttributes() {
     return [
 //      'author_name',
 //      'width',
 //      'height',
 //      'url',
-//      'html',
+      'html' => $this->t('HTML'),
     ];
   }
 
@@ -109,18 +79,20 @@ class SmugMug extends MediaTypeBase {
    *   data.
    */
   protected function getSmugMugUrl(MediaInterface $media) {
-    if (isset($this->configuration['source_field'])) {
-      $source_field = $this->configuration['source_field'];
-
-      if ($media->hasField($source_field)) {
-        $property_name = $media->{$source_field}->first()->mainPropertyName();
-        $embed = $media->{$source_field}->{$property_name};
-
-        return static::parseSmugMugEmbedField($embed);
-      }
+    if (empty($this->configuration['source_field'])) {
+      return FALSE;
     }
 
-    return FALSE;
+    $source_field = $this->configuration['source_field'];
+
+    if (!$media->hasField($source_field)) {
+      return FALSE;
+    }
+
+    $property_name = $media->{$source_field}->first()->mainPropertyName();
+    $embed = $media->{$source_field}->{$property_name};
+
+    return static::parseSmugMugEmbedField($embed);
   }
 
   /**
@@ -174,14 +146,15 @@ class SmugMug extends MediaTypeBase {
   /**
    * {@inheritdoc}
    */
-  public function getField(MediaInterface $media, $name) {
+  public function getMetadata(MediaInterface $media, $attribute_name) {
     $content_url = $this->getSmugMugUrl($media);
 
     if ($content_url === FALSE) {
       return FALSE;
     }
 
-    switch ($name) {
+    switch ($attribute_name) {
+      //      Todo: To be implemented.
 //      case 'author_name':
 //        return $data['author_name'];
 //
@@ -196,43 +169,17 @@ class SmugMug extends MediaTypeBase {
 
       case 'html':
         return $this->getEmbed($content_url, $media->id());
+
+      default:
+        return parent::getMetadata($media, $attribute_name);
     }
-
-    return '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function thumbnail(MediaInterface $media) {
-    // @todo Add support for thumnails on the longrun.
-    return $this->getDefaultThumbnail();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getDefaultThumbnail() {
-    return $this->config->get('icon_base') . '/smugmug.jpg';
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function attachConstraints(MediaInterface $media) {
-    parent::attachConstraints($media);
-
-    if (isset($this->configuration['source_field'])) {
-      $source_field_name = $this->configuration['source_field'];
-
-      if ($media->hasField($source_field_name)) {
-        foreach ($media->get($source_field_name) as &$embed_code) {
-          /** @var \Drupal\Core\TypedData\DataDefinitionInterface $typed_data */
-          $typed_data = $embed_code->getDataDefinition();
-          $typed_data->addConstraint('SmugMugEmbedCode');
-        }
-      }
-    }
+  public function getSourceFieldConstraints() {
+    return ['SmugMugEmbedCode' => []];
   }
 
 }
