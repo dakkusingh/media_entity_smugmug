@@ -5,12 +5,6 @@ namespace Drupal\media_entity_smugmug\Plugin\media\Source;
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;
 use Drupal\media\MediaSourceFieldConstraintsInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Entity\EntityFieldManagerInterface;
-use Drupal\Core\Field\FieldTypePluginManagerInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\media\MediaTypeInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * SmugMug entity media source.
@@ -27,9 +21,12 @@ class SmugMug extends MediaSourceBase implements MediaSourceFieldConstraintsInte
 
   const IFRAME_TEMPLATE = '<iframe class="smugmug-gallery" id="smugmug-gallery-@id" src="@url" width="@width" frameborder="no" scrolling="no"></iframe>';
 
+  /**
+   *
+   */
   private function getDefaultIframeQuerySettings() {
     return [
-//      'key' => '',
+    // 'key' => '',.
       'autoStart' => '1',
       'captions' => '1',
       'navigation' => '1',
@@ -46,17 +43,16 @@ class SmugMug extends MediaSourceBase implements MediaSourceFieldConstraintsInte
    */
   public function getMetadataAttributes() {
     return [
-//      'author_name',
-//      'width',
-//      'height',
-//      'url',
+    // 'author_name',
+    //      'width',
+    //      'height',
+    //      'url',.
       'html' => $this->t('HTML'),
     ];
   }
 
   /**
    * Returns the iframe embed for a SmugMug post.
-   *
    *
    * @return string
    */
@@ -71,7 +67,7 @@ class SmugMug extends MediaSourceBase implements MediaSourceFieldConstraintsInte
   /**
    * Runs preg_match on embed code/URL.
    *
-   * @param MediaInterface $media
+   * @param \Drupal\media\MediaInterface $media
    *   Media object.
    *
    * @return string|false
@@ -151,19 +147,18 @@ class SmugMug extends MediaSourceBase implements MediaSourceFieldConstraintsInte
     }
 
     switch ($attribute_name) {
-      //      Todo: To be implemented.
-//      case 'author_name':
-//        return $data['author_name'];
-//
-//      case 'width':
-//        return $data['width'];
-//
-//      case 'height':
-//        return $data['height'];
-//
-//      case 'url':
-//        return $data['url'];
-
+      // Todo: To be implemented.
+      //      case 'author_name':
+      //        return $data['author_name'];
+      //
+      //      case 'width':
+      //        return $data['width'];
+      //
+      //      case 'height':
+      //        return $data['height'];
+      //
+      //      case 'url':
+      //        return $data['url'];.
       case 'html':
         return $this->getEmbed($content_url, $media->id());
 
