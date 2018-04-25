@@ -22,9 +22,12 @@ class SmugMug extends MediaTypeBase {
 
   const IFRAME_TEMPLATE = '<iframe class="smugmug-gallery" id="smugmug-gallery-@id" src="@url" width="@width" frameborder="no" scrolling="no"></iframe>';
 
+  /**
+   *
+   */
   private function getDefaultIframeQuerySettings() {
     return [
-//      'key' => '',
+    // 'key' => '',.
       'autoStart' => '1',
       'captions' => '1',
       'navigation' => '1',
@@ -76,17 +79,16 @@ class SmugMug extends MediaTypeBase {
    */
   public function providedFields() {
     return [
-//      'author_name',
-//      'width',
-//      'height',
-//      'url',
-//      'html',
+    // 'author_name',
+    //      'width',
+    //      'height',
+    //      'url',
+    //      'html',.
     ];
   }
 
   /**
    * Returns the iframe embed for a SmugMug post.
-   *
    *
    * @return string
    */
@@ -101,7 +103,7 @@ class SmugMug extends MediaTypeBase {
   /**
    * Runs preg_match on embed code/URL.
    *
-   * @param MediaInterface $media
+   * @param \Drupal\media_entity\MediaInterface $media
    *   Media object.
    *
    * @return string|false
@@ -182,18 +184,17 @@ class SmugMug extends MediaTypeBase {
     }
 
     switch ($name) {
-//      case 'author_name':
-//        return $data['author_name'];
-//
-//      case 'width':
-//        return $data['width'];
-//
-//      case 'height':
-//        return $data['height'];
-//
-//      case 'url':
-//        return $data['url'];
-
+      // Case 'author_name':
+      //        return $data['author_name'];
+      //
+      //      case 'width':
+      //        return $data['width'];
+      //
+      //      case 'height':
+      //        return $data['height'];
+      //
+      //      case 'url':
+      //        return $data['url'];.
       case 'html':
         return $this->getEmbed($content_url, $media->id());
     }
