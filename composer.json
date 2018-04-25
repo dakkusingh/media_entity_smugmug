@@ -1,6 +1,0 @@
-{
-  "name": "drupal/media_entity_smugmug",
-  "description": "Provides a media entity SmugMug.",
-  "type": "drupal-module",
-  "license": "GPL-2.0+"
-}
